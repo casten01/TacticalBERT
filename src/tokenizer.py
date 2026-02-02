@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import numpy as np
 import torch
 from pathlib import Path
 from tqdm import tqdm
@@ -16,9 +17,9 @@ class FootballTokenizer:
             "[UNK]": 1,
             "[CLS]": 2,
             "[SEP]": 3,
-            "[MASK]": 4
+            "[MASK]": 4,
         }
-        self.next_token_id = 5 
+        self.next_token_id = 5
 
     def fit(self, parquet_files):
         
@@ -30,7 +31,14 @@ class FootballTokenizer:
 
         for file_path in tqdm(parquet_files, desc="Scanning Vocab"):
             df = pd.read_parquet(file_path)
-            
+
+            if 'shot_outcome_name' in df.columns:
+                mask_goal = (df['type_name'] == 'Shot') & (df['shot_outcome_name'] == 'Goal')
+                df.loc[mask_goal, 'type_name'] = 'Goal'
+
+            if 'type_name' in df.columns:
+                df = df[~df['type_name'].isin(Config.IGNORED_EVENTS)]
+
             for col in Config.CATEGORICAL_COLS:
                 uniques = df[col].astype(str).unique()
                 unique_values[col].update(uniques)
@@ -42,8 +50,13 @@ class FootballTokenizer:
                         
             vocab_mapping = self.special_tokens.copy()
             current_id = self.next_token_id
-            
+
+            if col == 'type_name':
+                vocab_mapping["Goal"] = 5
+
             for val in sorted_values:
+                if val in vocab_mapping:
+                    continue
                 vocab_mapping[val] = current_id
                 current_id += 1
             
@@ -64,7 +77,7 @@ class FootballTokenizer:
 
     def encode_match(self, df_match):
         """
-        Transform a a DataFrame of a match into a LIST of SEQUENCES (Possessions).
+        Transform a DataFrame of a match into a LIST of SEQUENCES (Possessions).
         Each sequence is a dictionary of lists of integers.
         """
         sequences = []
@@ -73,7 +86,30 @@ class FootballTokenizer:
         
         for possession_id, group in grouped:
             group = group.sort_values('index')
+            if 'type_name' in group.columns:
+                group = group[~group['type_name'].isin(Config.IGNORED_EVENTS)].copy()
             
+            next_x = group['x'].shift(-1)
+            next_y = group['y'].shift(-1)
+            
+            dx = next_x - group['x']
+            dy = next_y - group['y']
+            dist = np.sqrt(dx**2 + dy**2)
+            
+            is_carry = group['type_name'] == 'Carry'
+            is_short = dist < Config.MIN_CARRY_DISTANCE
+            
+
+            mask_keep = ~(is_carry & is_short)
+            group = group[mask_keep]
+            
+            if len(group) < 2:
+                continue
+
+            if 'shot_outcome_name' in group.columns:
+                            is_goal = (group['type_name'] == 'Shot') & (group['shot_outcome_name'] == 'Goal')
+                            group.loc[is_goal, 'type_name'] = 'Goal'
+
             seq_data = {
                 'match_id': group['match_id'].iloc[0],
                 'possession_id': int(possession_id),
@@ -86,10 +122,17 @@ class FootballTokenizer:
                 'duration_ids': [],
                 'loc_ids': [],
                 'end_loc_ids': [],
-                'context_features': [] 
+                'context_features': [],
+
+                'player_ids': [],
+                'team_ids': [],
+                'event_ids': [],
+                'timestamps': []
             }
 
             for _, row in group.iterrows():
+                type_name = str(row['type_name'])
+                
                 for col in Config.CATEGORICAL_COLS:
                     val = str(row[col])
                     vocab = self.vocabs.get(col, {})
@@ -114,6 +157,16 @@ class FootballTokenizer:
                     int(row['is_possession_team'])
                 ]
                 seq_data['context_features'].append(ctx)
+
+                pid = row.get('player_id', 0)
+                seq_data['player_ids'].append(int(pid) if pd.notna(pid) else 0)
+                
+                tid = row.get('team_id', 0)
+                seq_data['team_ids'].append(int(tid) if pd.notna(tid) else 0)
+                
+                seq_data['event_ids'].append(str(row.get('id', '')))
+                
+                seq_data['timestamps'].append(str(row.get('timestamp', '')))
 
             sequences.append(seq_data)
             

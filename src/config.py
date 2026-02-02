@@ -34,6 +34,7 @@ class Config:
     ]
     
     META_COLS = [
+
         'match_id', 
         'id', 
         'index', 
@@ -44,6 +45,24 @@ class Config:
         'team_id'
     ]
 
+    IGNORED_EVENTS = {
+        '50/50',
+        'Half Start',
+        'Half End',
+        'Referee Ball-Drop',
+        'Player On',
+        'Player Off',
+        'Tactical Shift',
+        'Injury Stoppage',
+        'Substitution',
+        'Starting XI',
+        'Ball Receipt',
+    }
+    MIN_CARRY_DISTANCE = 3.0
     GRID_WIDTH = 120
     GRID_HEIGHT = 80
     MAX_SEQ_LEN = 128
+    HIDDEN_SIZE = 256
+    LAYERS = 6
+    HEADS = 8
+    MAX_LEN = 128
