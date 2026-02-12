@@ -86,6 +86,7 @@ class FootballTokenizer:
         
         for possession_id, group in grouped:
             group = group.sort_values('index')
+            attacking_team = group['possession_team_id'].iloc[0]
             if 'type_name' in group.columns:
                 group = group[~group['type_name'].isin(Config.IGNORED_EVENTS)].copy()
             
@@ -132,6 +133,18 @@ class FootballTokenizer:
 
             for _, row in group.iterrows():
                 type_name = str(row['type_name'])
+                x = row['x']
+                y = row['y']
+                end_x = row['end_x']
+                end_y = row['end_y']
+
+                if row['possession_team_id'] != attacking_team:
+                    x = Config.GRID_WIDTH - x
+                    y = Config.GRID_HEIGHT - y
+
+                    if pd.notna(end_x):
+                        end_x = Config.GRID_WIDTH - end_x
+                        end_y = Config.GRID_HEIGHT - end_y
                 
                 for col in Config.CATEGORICAL_COLS:
                     val = str(row[col])
@@ -142,8 +155,8 @@ class FootballTokenizer:
                     key = col.replace('_name', '_ids')
                     seq_data[key].append(tid)
 
-                loc_id = discretize_location(row['x'], row['y'])
-                end_loc_id = discretize_location(row['end_x'], row['end_y'])
+                loc_id = discretize_location(x, y)
+                end_loc_id = discretize_location(end_x, end_y)
                 seq_data['loc_ids'].append(loc_id)
                 seq_data['end_loc_ids'].append(end_loc_id)
                 
