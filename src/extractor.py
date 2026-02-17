@@ -38,6 +38,13 @@ class DataExtractor:
         # Custom column processing
         events['is_possession_team'] = (events['team_id'] == events['possession_team_id'])
 
+        if 'type_name' in events.columns:
+            events = events[~events['type_name'].isin(Config.IGNORED_EVENTS)].copy()
+
+        if 'shot_outcome_name' in events.columns:
+            is_goal = (events['type_name'] == 'Shot') & (events['shot_outcome_name'] == 'Goal')
+            events.loc[is_goal, 'type_name'] = 'Goal'
+
         cols_to_keep = (
             Config.CATEGORICAL_COLS + 
             Config.BOOLEAN_COLS + 

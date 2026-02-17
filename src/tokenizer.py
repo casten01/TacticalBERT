@@ -32,13 +32,6 @@ class FootballTokenizer:
         for file_path in tqdm(parquet_files, desc="Scanning Vocab"):
             df = pd.read_parquet(file_path)
 
-            if 'shot_outcome_name' in df.columns:
-                mask_goal = (df['type_name'] == 'Shot') & (df['shot_outcome_name'] == 'Goal')
-                df.loc[mask_goal, 'type_name'] = 'Goal'
-
-            if 'type_name' in df.columns:
-                df = df[~df['type_name'].isin(Config.IGNORED_EVENTS)]
-
             for col in Config.CATEGORICAL_COLS:
                 uniques = df[col].astype(str).unique()
                 unique_values[col].update(uniques)
@@ -86,65 +79,48 @@ class FootballTokenizer:
         
         for possession_id, group in grouped:
             group = group.sort_values('index')
-            attacking_team = group['possession_team_id'].iloc[0]
-            if 'type_name' in group.columns:
-                group = group[~group['type_name'].isin(Config.IGNORED_EVENTS)].copy()
+            attacking_team = group['is_possession_team'].iloc[0]
             
-            next_x = group['x'].shift(-1)
-            next_y = group['y'].shift(-1)
-            
-            dx = next_x - group['x']
-            dy = next_y - group['y']
-            dist = np.sqrt(dx**2 + dy**2)
+            dist = self.event_distance(group)
             
             is_carry = group['type_name'] == 'Carry'
             is_short = dist < Config.MIN_CARRY_DISTANCE
             
-
             mask_keep = ~(is_carry & is_short)
             group = group[mask_keep]
             
             if len(group) < 2:
                 continue
 
-            if 'shot_outcome_name' in group.columns:
-                            is_goal = (group['type_name'] == 'Shot') & (group['shot_outcome_name'] == 'Goal')
-                            group.loc[is_goal, 'type_name'] = 'Goal'
-
             seq_data = {
                 'match_id': group['match_id'].iloc[0],
                 'possession_id': int(possession_id),
+
+                # Categorical features (tokenized)
                 'type_ids': [],
+                'loc_ids': [],
+                'duration_ids': [],
+                'context_features': [],
+                # Future extensions:
                 'sub_type_ids': [],
                 'outcome_ids': [],
                 'body_part_ids': [],
                 'technique_ids': [],
                 'play_pattern_ids': [],
-                'duration_ids': [],
-                'loc_ids': [],
-                'end_loc_ids': [],
-                'context_features': [],
-
+                
+                # Meta info (not for training)
                 'player_ids': [],
-                'team_ids': [],
-                'event_ids': [],
-                'timestamps': []
+                'team_ids': []
             }
 
             for _, row in group.iterrows():
                 type_name = str(row['type_name'])
                 x = row['x']
                 y = row['y']
-                end_x = row['end_x']
-                end_y = row['end_y']
 
-                if row['possession_team_id'] != attacking_team:
+                if row['is_possession_team'] != attacking_team:
                     x = Config.GRID_WIDTH - x
                     y = Config.GRID_HEIGHT - y
-
-                    if pd.notna(end_x):
-                        end_x = Config.GRID_WIDTH - end_x
-                        end_y = Config.GRID_HEIGHT - end_y
                 
                 for col in Config.CATEGORICAL_COLS:
                     val = str(row[col])
@@ -156,9 +132,7 @@ class FootballTokenizer:
                     seq_data[key].append(tid)
 
                 loc_id = discretize_location(x, y)
-                end_loc_id = discretize_location(end_x, end_y)
                 seq_data['loc_ids'].append(loc_id)
-                seq_data['end_loc_ids'].append(end_loc_id)
                 
                 dur_id = discretize_duration(row['duration'])
                 seq_data['duration_ids'].append(dur_id)
@@ -173,14 +147,19 @@ class FootballTokenizer:
 
                 pid = row.get('player_id', 0)
                 seq_data['player_ids'].append(int(pid) if pd.notna(pid) else 0)
-                
+
                 tid = row.get('team_id', 0)
                 seq_data['team_ids'].append(int(tid) if pd.notna(tid) else 0)
-                
-                seq_data['event_ids'].append(str(row.get('id', '')))
-                
-                seq_data['timestamps'].append(str(row.get('timestamp', '')))
 
             sequences.append(seq_data)
             
         return sequences
+
+    def event_distance(self, group):
+        next_x = group['x'].shift(-1)
+        next_y = group['y'].shift(-1)
+            
+        dx = next_x - group['x']
+        dy = next_y - group['y']
+        dist = np.sqrt(dx**2 + dy**2)
+        return dist
