@@ -38,14 +38,15 @@ class TacticalCollator:
             'input_ids': [],         # masked type_ids
             'attention_mask': [],     
             'labels': [],  
-
             'loc_ids': [],
-            'end_loc_ids': [],
             'duration_ids': [],
             'context_features': [],
+
             # Meta info (not tensors, not for training)
             'player_ids': [],
-            'match_id': []
+            'match_id': [],
+            'team_ids': [],
+            'possession_id': []
         }
 
         for item in batch:
@@ -93,6 +94,8 @@ class TacticalCollator:
             
             batch_out['player_ids'].append(item.get('player_ids', []))
             batch_out['match_id'].append(item.get('match_id', 0))
+            batch_out['team_ids'].append(item.get('team_ids', []))
+            batch_out['possession_id'].append(item.get('possession_id', 0))
 
         return {
             'input_ids': torch.tensor(batch_out['input_ids'], dtype=torch.long),
@@ -103,6 +106,8 @@ class TacticalCollator:
             'context_features': torch.tensor(batch_out['context_features'], dtype=torch.float), # Float per proiezione lineare
             'meta': {
                 'player_ids': batch_out['player_ids'],
-                'match_id': batch_out['match_id']
+                'match_id': batch_out['match_id'],
+                'team_ids': batch_out['team_ids'],
+                'possession_id': batch_out['possession_id']
             }
         }
