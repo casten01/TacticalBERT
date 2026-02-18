@@ -14,7 +14,7 @@ class TacticalEmbeddings(nn.Module):
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
 
         self.loc_embeddings = nn.Embedding(Config.GRID_WIDTH * Config.GRID_HEIGHT + 100, config.hidden_size, padding_idx=0)
-        self.duration_embeddings = nn.Embedding(20, config.hidden_size, padding_idx=0)
+        self.duration_embeddings = nn.Embedding(Config.DURATION_BINS_NUMBER, config.hidden_size, padding_idx=0)
         self.context_projection = nn.Linear(3, config.hidden_size)
 
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
@@ -35,7 +35,7 @@ class TacticalEmbeddings(nn.Module):
 
         if position_ids is None:
             position_ids = torch.arange(seq_length, dtype=torch.long, device=words_embeddings.device)
-            position_ids = position_ids.unsqueeze(0).expand_as(words_embeddings[:, :, 0]) # Espansione sicura
+            position_ids = position_ids.unsqueeze(0).expand_as(words_embeddings[:, :, 0]) 
 
         if token_type_ids is None:
             token_type_ids = torch.zeros(
@@ -78,7 +78,7 @@ class TacticalBert(nn.Module):
         
         self.bert.bert.embeddings = TacticalEmbeddings(self.config)
 
-    def forward(self, input_ids, attention_mask, labels=None, loc_ids=None, duration_ids=None, context_features=None):
+    def forward(self, input_ids, attention_mask, labels=None, loc_ids=None, duration_ids=None, context_features=None, output_attentions=False):
         
         embedding_output = self.bert.bert.embeddings(
             input_ids, 
@@ -90,7 +90,8 @@ class TacticalBert(nn.Module):
         outputs = self.bert(
             inputs_embeds=embedding_output,
             attention_mask=attention_mask,
-            labels=labels
+            labels=labels,
+            output_attentions=output_attentions
         )
         
         return outputs

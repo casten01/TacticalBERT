@@ -4,7 +4,8 @@ class Config:
     BASE_DIR = Path(__file__).parent.parent
     RAW_DATA_DIR = BASE_DIR / "data" / "raw"
     PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
-    
+    BEST_MODEL_PATH = BASE_DIR / "checkpoints" / "model_production.pth"
+
     RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
     PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -30,16 +31,11 @@ class Config:
     NUMERICAL_COLS = [
         'duration',
         'x', 'y', 
-        'end_x', 'end_y'
     ]
     
     META_COLS = [
-
         'match_id', 
-        'id', 
         'index', 
-        'period', 
-        'timestamp', 
         'possession', 
         'player_id', 
         'team_id'
@@ -57,12 +53,15 @@ class Config:
         'Substitution',
         'Starting XI',
         'Ball Receipt',
-    }
+        'Own Goal Against',
+    } 
     MIN_CARRY_DISTANCE = 3.0
+    DURATION_BINS_NUMBER = 10
     GRID_WIDTH = 120
     GRID_HEIGHT = 80
+
     MAX_SEQ_LEN = 128
-    HIDDEN_SIZE = 256
-    LAYERS = 6
-    HEADS = 8
+    HIDDEN_SIZE = 128
+    LAYERS = 4
+    HEADS = 4
     MAX_LEN = 128
