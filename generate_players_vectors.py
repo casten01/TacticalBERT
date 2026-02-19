@@ -16,7 +16,7 @@ from src.dataset import FootballDataset, TacticalCollator
 # --- CONFIG ---
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-CHECKPOINT_PATH = Config.BASE_DIR / "checkpoints/model_epoch_5.pth"
+CHECKPOINT_PATH = Config.BEST_MODEL_PATH
 DATA_PATH = Config.PROCESSED_DATA_DIR / "dataset_tokenized.pt"
 VOCAB_PATH = Config.PROCESSED_DATA_DIR / "vocab.json"
 METADATA_PATH = Config.PROCESSED_DATA_DIR / "player_metadata.json"
@@ -188,7 +188,6 @@ def main():
     print("Loading Dataset...")
     dataset = FootballDataset(DATA_PATH)
     collator = TacticalCollator(tokenizer_vocab=vocab['type_name'], max_len=Config.MAX_LEN)
-    # TODO: Adjust batch size as needed
     dataloader = DataLoader(dataset, batch_size=64, collate_fn=collator, shuffle=False)
     
     sums, counts = extract_and_aggregate(model, dataloader)
