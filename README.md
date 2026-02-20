@@ -28,7 +28,7 @@ It is highly recommended to use a virtual environment to avoid dependency confli
 
 ```bash
 # Clone the repository
-git clone [https://github.com/yourusername/TacticalBERT.git](https://github.com/yourusername/TacticalBERT.git)
+git clone https://github.com/casten01/TacticalBERT.git
 cd TacticalBERT
 
 # Create a virtual environment (Python 3.8+ recommended)
