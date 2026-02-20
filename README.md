@@ -1,7 +1,7 @@
 # TacticalBERT: Decoding Football Tactics with Transformers
 
 ## Overview
-This repository contains the code and implementation for **TacticalBERT**, a Transformer-based model designed to analyze football (soccer) event data. Drawing inspiration from Natural Language Processing (NLP) literature, this project treats football matches as a language, where events (passes, carries, duels) are words, and ball possessions are sentences. 
+This repository contains the code and implementation for **TacticalBERT**, a Transformer-based model designed to analyze football (soccer) event data. Drawing inspiration from Natural Language Processing (NLP) literature, this project treats football matches as a language, where events (passes, carries, duels) are words, and ball possessions are sentences.
 
 The input representation of the model is a composite embedding constructed by summing the standard base tokens with custom tactical dimensions: the discretized spatial location on the pitch, the event's duration, and a linear projection of continuous contextual features (such as defensive pressure).
 
@@ -31,7 +31,7 @@ The repository is organized into the following key directories and files:
 
 * **`Root Directory`** contains the main executable scripts that form the pipeline (`extract_data.py`, `process_data.py`, `generate_events_vectors.py`, `generate_players_vectors.py`, and `train.py`), along with environment setups (`requirements.txt`).
 
-* **`data/`** *(Generated Locally)* ignored by Git to save space, this directory is created automatically when running the extraction scripts. It houses the `raw/` downloaded Parquet chunks and the `processed/` tokenized PyTorch datasets.
+* **`data/`** *(Generated Locally)* this directory is created automatically when running the extraction scripts. It houses the `raw/` downloaded Parquet chunks and the `processed/` tokenized PyTorch datasets.
 
 ## Getting Started
 
@@ -107,5 +107,23 @@ I use generative AI during the development of this research project.
 * **Purposes:** AI was utilized as an interactive research assistant to help brainstorm and summarize ideas and assist in drafting Python code.
 
 All AI-generated outputs were treated strictly as drafts. Every piece of code was reviewed, tested, and  modified. All final conclusions and analyses are entirely the author's original work.
+
+## Inspiration & Data Sources
+
+This project bridges the gap between natural language processing and sports analytics, relying on high-quality open data and foundational research in transformer interpretability.
+
+### Data Source
+All tactical sequences, physical coordinates, and event metadata used to train and evaluate TacticalBERT are sourced from the **[StatsBomb Open Data Repository](https://github.com/statsbomb/open-data)**. The dataset considers the comprehensive event data from the 2015/2016 season across the "Big Five" European leagues.
+
+### Academic Inspiration
+
+* **Transformer Interpretability & Geometry:**
+  * **Reif, E., et al. (2019).** *Visualizing and measuring the geometry of BERT.* This work inspired approach to projecting the model's latent space, demonstrating that a transformer's embeddings possess a searchable geometry where semantic (and in our case, tactical) relationships are encoded as spatial distances.
+  * **Abnar, S., & Zuidema, W. (2020).** *Quantifying attention flow in transformers.* This paper guided the diagnostic approach to multi-head attention, highlighting the "Raw Attention Problem" and the necessity of tracking token mixing across layers to find the true causal dependencies in a sequence.
+
+* **Language Models in Football Analytics:**
+  * **Adjileye, A. A. (2024).** *RisingBALLER: A player is a token, a match is a sentence...* This research pioneered the paradigm of treating football data strictly as language, providing the foundational concept that sequential player involvements can be modeled exactly like textual sentences.
+  * **Hong, M., et al. (2025).** *ScoutGPT: Capturing Player Impact from Team Action Sequences Using GPT-Based Framework.* This recent work reinforced the validity of using sequence-based generative frameworks to isolate and understand complex player impacts and tactical behaviors within team actions.
+
 
 
