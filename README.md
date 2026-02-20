@@ -1,6 +1,6 @@
 # TacticalBERT: Decoding Football Tactics with Transformers
 
-## 📖 Overview
+## Overview
 This repository contains the code and implementation for **TacticalBERT**, a Transformer-based model designed to analyze football (soccer) event data. Drawing inspiration from Natural Language Processing (NLP) literature, this project treats football matches as a language, where events (passes, carries, duels) are words, and ball possessions are sentences. 
 
 The input representation of the model is a composite embedding constructed by summing the standard base tokens with custom tactical dimensions: the discretized spatial location on the pitch, the event's duration, and a linear projection of continuous contextual features (such as defensive pressure).
@@ -19,7 +19,21 @@ The model was trained from scratch with:
 * **Batch Size:** 32
 * **Regularization:** Early Stopping with a patience of 15 epochs, monitoring the Validation Macro F1-Score.
 
-## 🚀 Getting Started
+### Project Structure
+
+The repository is organized into the following key directories and files:
+
+* **`analysis/`** contains Jupyter Notebooks dedicated to exploratory data analysis and model interpretability. You will find the analyses on attention mechanisms (`attention_analysis.ipynb`), events embeddings analysis  (`geometric_tactical_events.ipynb`), and player embeddings (`players_semantic_atlas.ipynb`).
+  
+* **`models/`** stores the pre-trained weights of the model (`model_best.pth`, re-trained with complete dataset `model_production.pth`), along with the training state logs and the final classification reports (`best_report.txt`).
+
+* **`src/`** the core source code of the project. It includes the custom architecture (`model.py`), the data loading and collating logic (`dataset.py`), the tactical vocabulary builder (`tokenizer.py`), and the global hyperparameters (`config.py`).
+
+* **`Root Directory`** contains the main executable scripts that form the pipeline (`extract_data.py`, `process_data.py`, `generate_events_vectors.py`, `generate_players_vectors.py`, and `train.py`), along with environment setups (`requirements.txt`).
+
+* **`data/`** *(Generated Locally)* ignored by Git to save space, this directory is created automatically when running the extraction scripts. It houses the `raw/` downloaded Parquet chunks and the `processed/` tokenized PyTorch datasets.
+
+## Getting Started
 
 To reproduce the analysis or train the model from scratch, please follow the setup instructions carefully.
 
@@ -44,11 +58,28 @@ source venv/bin/activate
 ### 2. Install Dependencies
 
 Once the virtual environment is active, install the required packages:
-```Bash
+```bash
 pip install -r requirements.txt
 ```
+### 3. Data Pipeline Execution
 
-### 3. Model Weights
+To process the raw StatsBomb data and generate the contextual embeddings required by the model, you must run the following data preparation scripts in this exact order:
+
+- `extract_data.py`: Connects to the data source/API and downloads the raw JSON event files for the selected matches.
+
+- `process_data.py`: Cleans the raw data, handles missing values, and structures the events into continuous possession sequences.
+
+- `generate_events_vectors.py`: Converts the categorical tactical events (e.g., Pass, Carry) into numerical tokens based on the custom type_vocab.
+
+- `generate_players_vectors.py`: Creates contextual embeddings for the players involved, mapping their roles and physical coordinates on the pitch.
+
+```bash
+python extract_data.py
+python process_data.py
+python generate_events_vectors.py
+python generate_players_vectors.py
+```
+### 4. Model Weights
 
 The pre-trained TacticalBERT model weights are already included in the `model` directory. You do not need to retrain the model to run the interpretability notebooks.
 
@@ -63,33 +94,14 @@ To start the training process, simply run:
 python train.py
 ```
 
-## ⚙️ Data Pipeline Execution
 
-To process the raw StatsBomb data and generate the contextual embeddings required by the model, you must run the following data preparation scripts in this exact order:
-
-- `extract_data.py`: Connects to the data source/API and downloads the raw JSON event files for the selected matches.
-
-- `process_data.py`: Cleans the raw data, handles missing values, and structures the events into continuous possession sequences.
-
-- `generate_events_vectors.py`: Converts the categorical tactical events (e.g., Pass, Carry) into numerical tokens based on the custom type_vocab.
-
-- `generate_players_vectors.py`: Creates contextual embeddings for the players involved, mapping their roles and physical coordinates on the pitch.
-
-Bash
-```
-python extract_data.py
-python process_data.py
-python generate_events_vectors.py
-python generate_players_vectors.py
-```
-
-## 📊 Interpretability & Notebooks
+## Interpretability & Notebooks
 
 After successfully running the data pipeline, you can explore the Jupyter Notebooks. These notebooks contain the core analytical work, combining theoretical NLP research with sports analytics.
 
-## 🤖 Generative AI Disclaimer
+## Generative AI Disclaimer
 
-I use of generative AI during the development of this research project.
+I use generative AI during the development of this research project.
 
 * **Models Used:** Google Gemini
 * **Purposes:** AI was utilized as an interactive research assistant to help brainstorm and summarize ideas and assist in drafting Python code.
