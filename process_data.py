@@ -6,7 +6,9 @@ from src.tokenizer import FootballTokenizer
 from tqdm import tqdm
 
 def main():
-    print("--- STEP 2: TOKENIZATION & PROCESSING ---")
+    print("TOKENIZATION & PROCESSING")
+    Config.RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    Config.PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
     
     files = sorted(list(Config.RAW_DATA_DIR.glob("*.parquet")))
     if not files:

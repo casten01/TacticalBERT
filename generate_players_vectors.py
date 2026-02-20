@@ -161,6 +161,7 @@ def extract_and_aggregate(model, dataloader):
 # --- MAIN ---
 
 def main():
+    
     print(f"Working on device: {DEVICE}")
     
     player_meta = load_metadata()

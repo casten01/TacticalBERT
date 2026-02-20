@@ -4,7 +4,7 @@ class Config:
     BASE_DIR = Path(__file__).parent.parent
     RAW_DATA_DIR = BASE_DIR / "data" / "raw"
     PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
-    BEST_MODEL_PATH = BASE_DIR / "checkpoints" / "model_production.pth"
+    BEST_MODEL_PATH = BASE_DIR / "models" / "model_production.pth"
 
     RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
     PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)

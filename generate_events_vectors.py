@@ -90,6 +90,8 @@ def extract_individual_events(model, dataloader, target_event_name, vocab):
 
 def main(event_type='Pass'):
 
+    Config.PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    
     with open(Config.PROCESSED_DATA_DIR / "vocab.json", 'r') as f:
         vocab = json.load(f)
 

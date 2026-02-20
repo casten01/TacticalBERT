@@ -6,8 +6,6 @@ venv/
 
 data/       
 
-checkpoints/
-
 *.pt
         
 __pycache__/

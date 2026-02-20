@@ -42,7 +42,7 @@ class DataExtractor:
             events = events[~events['type_name'].isin(Config.IGNORED_EVENTS)].copy()
 
         if 'shot_outcome_name' in events.columns:
-            is_goal = (events['type_name'] == 'Shot') & (events['shot_outcome_name'] == 'Goal')
+            is_goal = (events['type_name'] == 'Shot') & (events['outcome_name'] == 'Goal')
             events.loc[is_goal, 'type_name'] = 'Goal'
 
         cols_to_keep = (
@@ -72,6 +72,7 @@ class DataExtractor:
     
     def save_matches_metadata(self):
         """. Saves a CSV mapping match_id -> competition_id."""
+        Config.RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
         all_meta = []
         print("Saving metadata index...")
         for comp_id in Config.COMPETITION_IDS:
@@ -112,6 +113,7 @@ class DataExtractor:
         self.save_matches_metadata()
             
     def _save_chunk(self, df_list, chunk_id):
+        Config.RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
         if not df_list: return
         full_df = pd.concat(df_list, ignore_index=True)
         filename = Config.RAW_DATA_DIR / f"events_chunk_{chunk_id}.parquet"
