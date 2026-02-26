@@ -203,7 +203,7 @@ def run_production_phase(dataset, type_vocab, device, class_weights, target_epoc
     print(f"Model successfully saved to {save_dir / 'model_production.pth'}")
 
 def main():
-    checkpoints_dir = Config.BASE_DIR / "checkpoints"
+    checkpoints_dir = Config.BASE_DIR / "models"
     checkpoints_dir.mkdir(exist_ok=True)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
